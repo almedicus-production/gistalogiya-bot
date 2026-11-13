@@ -854,6 +854,25 @@ async def handle_search_query(message: Message):
 # -------------------------------------------------------------
 async def main():
     logging.info("Starting Gistologiya Telegram Bot (@Gistalogiya_bot)...")
+
+    # Optional dummy HTTP server for Render / Cloud Web Service health checks
+    port = os.environ.get("PORT")
+    if port:
+        try:
+            from aiohttp import web
+            async def ping(request):
+                return web.Response(text="Gistologiya Bot is healthy and running!")
+            app = web.Application()
+            app.router.add_get("/", ping)
+            app.router.add_get("/health", ping)
+            runner = web.AppRunner(app)
+            await runner.setup()
+            site = web.TCPSite(runner, "0.0.0.0", int(port))
+            await site.start()
+            logging.info(f"Health check server started on port {port}")
+        except Exception as e:
+            logging.warning(f"Could not start health check server: {e}")
+
     # Delete webhook to ensure polling works cleanly
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
