@@ -852,6 +852,22 @@ async def handle_search_query(message: Message):
 # -------------------------------------------------------------
 # MAIN RUNNER
 # -------------------------------------------------------------
+async def keep_awake_task():
+    """Pings external Render URL every 10 minutes to prevent sleep."""
+    import aiohttp
+    render_url = os.environ.get("RENDER_EXTERNAL_URL", "https://gistalogiya-bot.onrender.com")
+    health_url = f"{render_url.rstrip('/')}/health"
+    await asyncio.sleep(45)
+    logging.info(f"Keep-alive watcher activated for {health_url}")
+    while True:
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(health_url, timeout=20) as resp:
+                    logging.info(f"Keep-alive self-ping: status {resp.status}")
+        except Exception as e:
+            logging.warning(f"Keep-alive ping warning: {e}")
+        await asyncio.sleep(600)
+
 async def main():
     logging.info("Starting Gistologiya Telegram Bot (@Gistalogiya_bot)...")
 
@@ -870,6 +886,8 @@ async def main():
             site = web.TCPSite(runner, "0.0.0.0", int(port))
             await site.start()
             logging.info(f"Health check server started on port {port}")
+            # Start background keep-awake self-ping
+            asyncio.create_task(keep_awake_task())
         except Exception as e:
             logging.warning(f"Could not start health check server: {e}")
 
