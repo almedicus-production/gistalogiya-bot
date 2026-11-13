@@ -36,3 +36,22 @@ def set_user_lang(user_id: int, lang: str, username: str = "", first_name: str =
     """, (user_id, username, first_name, lang))
     conn.commit()
     conn.close()
+
+def get_stats() -> dict:
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM users")
+    total_users = cur.fetchone()[0]
+
+    cur.execute("SELECT lang, COUNT(*) FROM users GROUP BY lang")
+    by_lang = dict(cur.fetchall())
+
+    cur.execute("SELECT COUNT(*) FROM users WHERE date(created_at) = date('now')")
+    today_users = cur.fetchone()[0]
+
+    conn.close()
+    return {
+        "total": total_users,
+        "by_lang": by_lang,
+        "today": today_users
+    }

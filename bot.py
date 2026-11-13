@@ -139,6 +139,22 @@ async def cmd_help(message: Message):
         parse_mode=ParseMode.HTML,
     )
 
+@dp.message(Command("stats"))
+@dp.message(Command("statistika"))
+async def cmd_stats(message: Message):
+    stats = db.get_stats()
+    text = (
+        "📊 <b>Gistologiya Bot Statistikasi:</b>\n\n"
+        f"👥 <b>Jami foydalanuvchilar:</b> {stats['total']} ta\n"
+        f"🆕 <b>Bugun kirganlar:</b> {stats['today']} ta\n\n"
+        "🌐 <b>Tillar bo'yicha:</b>\n"
+        f" • 🇺🇿 O'zbekcha (lotin): {stats['by_lang'].get('uz', 0)} ta\n"
+        f" • 🇺🇿 Кирилл: {stats['by_lang'].get('uz_cyr', 0)} ta\n"
+        f" • 🇷🇺 Русский: {stats['by_lang'].get('ru', 0)} ta\n\n"
+        "🌐 <b>Web platforma:</b> https://almedicus-production.github.io/gistalogiya/"
+    )
+    await message.answer(text, parse_mode=ParseMode.HTML)
+
 @dp.message(Command("savol"))
 async def cmd_savol(message: Message):
     lang = db.get_user_lang(message.from_user.id)
